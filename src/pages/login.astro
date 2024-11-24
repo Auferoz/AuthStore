@@ -18,7 +18,7 @@ const rememberMe = !!email;
                 <div class="space-y-2">
                     <label class="text-sm font-medium text-gray-700 tracking-wide">Email</label>
                     <input 
-                    class="w-full text-base px-4 py-2 border  border-gray-300 rounded-lg focus:outline-none focus:border-green-400" 
+                    class="w-full text-base px-4 py-2 border  border-gray-300 rounded-lg focus:outline-none focus:border-blue-400" 
                     type="email" 
                     placeholder="mail@gmail.com"
                     name="email"
@@ -29,10 +29,10 @@ const rememberMe = !!email;
                 <div class="space-y-2">
                     <label class="mb-5 text-sm font-medium text-gray-700 tracking-wide">Password</label>
                     <input
-                        class="w-full content-center text-base px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-400"
+                        class="w-full content-center text-base px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-400"
                         type="password"
                         name="password"
-                        placeholder="Enter your password"
+                        placeholder="Introduzca su contraseña"
                     />
                 </div>
 
@@ -48,17 +48,31 @@ const rememberMe = !!email;
                         <label for="remember_me" class="ml-2 block text-sm text-gray-800">Recuerdame</label>
                     </div>
                     <div class="text-sm">
-                        <a href="/register" class="text-green-400 hover:text-green-500">¿No tienes cuenta?</a>
+                        <a href="/register" class="text-blue-400 hover:text-blue-500">¿No tienes cuenta?</a>
                     </div>
                 </div>
 
                 <div>
                     <button 
-                        class="disabled:bg-gray-400 w-full flex justify-center bg-green-400  hover:bg-green-500 text-gray-100 p-3  rounded-full tracking-wide font-semibold  shadow-lg cursor-pointer transition ease-in duration-500"
+                        class="disabled:bg-gray-400 w-full flex justify-center bg-blue-400  hover:bg-blue-500 text-gray-100 p-3  rounded-full tracking-wide font-semibold  shadow-lg cursor-pointer transition ease-in duration-500"
                         type="submit"
                         id="btn-submit"
                     >
                         Iniciar sesión
+                    </button>
+
+                    <div class="flex flex-1 w-full my-3">
+                        <div class="w-full border-t-2 border-gray-500">
+
+                        </div>
+                    </div>
+
+                    <button 
+                        class="disabled:bg-gray-400 w-full flex justify-center bg-red-400  text-gray-100 p-3  rounded-full tracking-wide font-semibold  shadow-lg cursor-pointer transition ease-in duration-500"
+                        type="button"
+                        id="btn-google"
+                    >
+                        Iniciar con Google
                     </button>
                 </div>
             </form>
@@ -71,14 +85,18 @@ const rememberMe = !!email;
 </AuthLayout>
 
 <script>
-import { actions } from "astro:actions";
+import { firebase } from '@/firebase/config';
+import { actions } from 'astro:actions';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import Swal from 'sweetalert2';
 
     
     const form = document.querySelector('form') as HTMLFormElement;
     const btnSubmit = document.querySelector('#btn-submit') as HTMLButtonElement;
+    const btnGoogle = document.querySelector('#btn-google') as HTMLButtonElement;
 
     form.addEventListener('submit', async(e) => {
+
         e.preventDefault();
 
         btnSubmit.setAttribute('disabled', 'disabled');
@@ -98,8 +116,32 @@ import Swal from 'sweetalert2';
 
         window.location.replace('/protected')
 
+    });
 
+    btnGoogle.addEventListener('click', async () => {
+        btnGoogle.setAttribute('disabled', 'disabled');
+        const provider = new GoogleAuthProvider();
 
-    })
+        try {
+            //! Paso 1: obtener la credenciales del lado del cliente
+            const credentials = await signInWithPopup(firebase.auth, provider);
+
+            // Paso 2: Vericar las credenciales en el backend
+            const { error } = await actions.loginWithGoogle(credentials);
+
+            if (error) {
+                alert(error.message);
+                btnGoogle.removeAttribute('disabled');
+                return;
+            }
+
+            btnGoogle.innerText = 'Redireccionando...';
+            window.location.replace('/protected');
+        } catch (error) {
+            // console.log(error);
+            btnGoogle.removeAttribute('disabled');
+        }
+    });
+
 
 </script>

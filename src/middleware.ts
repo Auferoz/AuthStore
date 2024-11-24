@@ -1,44 +1,34 @@
-import type { MiddlewareNext } from "astro";
-import { defineMiddleware } from "astro:middleware";
-
+import type { MiddlewareNext } from 'astro';
+import { defineMiddleware } from 'astro:middleware';
+import { firebase } from './firebase/config';
 
 const privateRoutes = ['/protected'];
+const notAuthenticatedRoutes = ['/login', '/register'];
 
-export const onRequest = defineMiddleware(async ({ url, request }, next) => {
+export const onRequest = defineMiddleware(
+    async ({ url, request, locals, redirect }, next) => {
+        const isLoggedIn = !!firebase.auth.currentUser;
+        const user = firebase.auth.currentUser;
 
-    // console.log('ejecutado middleware');
-
-    const authHeaders = request.headers.get('authorization') ?? '';
-    // console.log("🚀 ~ onRequest ~ authHeaders:", authHeaders);
-
-
-    if ( privateRoutes.includes( url.pathname )) {
-
-        return checkLocalAuth( authHeaders, next );
-
-    }
-
-    return next();
-});
-
-
-
-const checkLocalAuth = ( authHeaders: string, next: MiddlewareNext ) => {
-
-    if ( authHeaders ) {
-        const authValue = authHeaders.split(' ').at(-1) ?? 'user:pass';
-        const decodedValue = atob(authValue).split(':');
-        const [ user, password ] = decodedValue;
-        
-        if ( user === 'admin' && password === 'admin') {
-            return next();
+        locals.isLoggedIn = isLoggedIn;
+        if (user) {
+        locals.user = {
+            avatar: user.photoURL ?? '',
+            email: user.email!,
+            name: user.displayName!,
+            emailVerified: user.emailVerified,
+        };
         }
-    }
 
-    return new Response('Auth requerida', {
-        status: 401,
-        headers: {
-            'WWW-Authenticate': 'Basic real="Secure Area"'
+        // console.log({ isLoggedIn, user });
+        if (!isLoggedIn && privateRoutes.includes(url.pathname)) {
+        return redirect('/');
         }
-    })
-}
+
+        if (isLoggedIn && notAuthenticatedRoutes.includes(url.pathname)) {
+        return redirect('/');
+        }
+
+        return next();
+    }
+);
