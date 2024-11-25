@@ -4,8 +4,10 @@ const { isLoggedIn } = Astro.locals;
 
 ---
 
-<nav class="flex justify-between px-20 py-10 items-center bg-white">
-    <h1 class="text-xl text-gray-800 font-bold">MigueluShop 🏪</h1>
+<nav class="flex flex-col lg:flex-row justify-between px-20 py-6 lg:py-10 items-center bg-white">
+
+    <h1 class="text-xl text-gray-800 font-bold pb-6 lg:py-0">MigueluShop 🏪</h1>
+
     <div class="flex items-center">
         <ul class="flex items-center space-x-6">
             <li class="font-semibold text-gray-700 hover:text-blue-800">
@@ -61,6 +63,7 @@ const { isLoggedIn } = Astro.locals;
 
         </ul>
     </div>
+
 </nav>
 
 <script>
